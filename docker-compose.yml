@@ -21,7 +21,7 @@ services:
     depends_on:
       - gateway
     ports:
-      - "3001:80"
+      - "3000:80"
     volumes:
       # Permite servir la versión build local sin reconstruir la imagen
       - ./frontend/dist:/usr/share/nginx/html:ro
