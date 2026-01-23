@@ -15,6 +15,7 @@
   "nav": {
     "brand": "LibApartado",
     "home": "Home",
+    "calendar": "Calendar",
     "users": "Users",
     "adminSpaces": "Admin Spaces",
     "adminReservations": "Admin Reservations",
@@ -31,7 +32,7 @@
     "email": "E-mail",
     "emailPlaceholder": "username@example.com",
     "password": "Password",
-    "passwordPlaceholder": "••••••••••••",
+    "passwordPlaceholder": "............",
     "forgotPassword": "Forgot your Password?",
     "loginButton": "Log In",
     "loggingIn": "Logging in...",
@@ -110,7 +111,12 @@
     "errorMaxDuration": "Reservation cannot exceed 4 hours",
     "successMessage": "Reservation created successfully!",
     "errorMessage": "Error creating reservation",
-    "loadingSpaces": "Loading available spaces..."
+    "loadingSpaces": "Loading available spaces...",
+    "existingTitle": "Upcoming reservations (next 7 days)",
+    "noReservations": "No reservations for this space in that range.",
+    "availabilityTitle": "Availability",
+    "calendarHint": "Select a day to see availability",
+    "selectSpaceToSee": "Select a space to see existing reservations"
   },
   "adminReservations": {
     "title": "Reservation Management",
@@ -176,5 +182,31 @@
     "approved": "Approved",
     "rejected": "Rejected",
     "cancelled": "Cancelled"
+  },
+  "calendar": {
+    "title": "Reservations Calendar",
+    "subtitle": "View space availability",
+    "today": "Today",
+    "week": "Week",
+    "month": "Month",
+    "noReservations": "No reservations",
+    "selectSpace": "All spaces",
+    "viewDetails": "View details",
+    "viewAll": "View all",
+    "more": "more",
+    "filters": "Filters",
+    "filterBySpace": "Filter by space",
+    "allSpaces": "All spaces",
+    "clearFilters": "Clear filters",
+    "reservations": "reservations",
+    "noReservationsDay": "No reservations for this day",
+    "createForDay": "Create reservation",
+    "errorLoading": "Error loading reservations"
+  },
+  "stats": {
+    "totalReservations": "Monthly Reservations",
+    "pending": "Pending",
+    "approved": "Approved",
+    "nextReservation": "Next Reservation"
   }
 }

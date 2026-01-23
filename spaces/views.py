@@ -28,7 +28,7 @@ def _parse_datetime(value):
     list=extend_schema(
         tags=["Espacios (Teacher)"],
         summary="Listar espacios",
-        description="Admin ve todos los espacios; Teacher ve solo los activos.",
+        description="Todos los usuarios autenticados ven todos los espacios (activos e inactivos).",
     ),
     retrieve=extend_schema(
         tags=["Espacios (Teacher)"], summary="Detalle de espacio", description="Visible para cualquier rol autenticado."
@@ -67,10 +67,7 @@ class SpaceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        if user and hasattr(user, "role") and user.role == user.Role.ADMIN:  # type: ignore[attr-defined]
-            return Space.objects.all()
-        return Space.objects.filter(is_active=True)
+        return Space.objects.all()
 
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:

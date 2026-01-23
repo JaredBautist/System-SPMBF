@@ -1,129 +1,61 @@
-# LibApartado – Backend (Django + DRF + MySQL)
+# LibApartado � Arquitectura de Microservicios
 
-Backend modular en Django/DRF para gestionar las reservas del Módulo 3 de la Biblioteca Moisés San Juan López (FESC). Sin integración con Google Calendar; toda la información se almacena en MySQL/MariaDB.
+Ahora el sistema est� 100% desacoplado en microservicios independientes con su propia base de datos y ciclo de despliegue.
 
-## Stack
-- Django 4.2 + Django REST Framework
-- JWT con `djangorestframework-simplejwt`
-- MySQL/MariaDB vía `django.db.backends.mysql` + `PyMySQL` (pure python, sin compilación)
-- Documentación con `drf-spectacular`
-- CORS con `django-cors-headers`
+## Servicios
+- **accounts-service**: autenticaci�n JWT y gesti�n de usuarios/roles (ADMIN, TEACHER). DB: `accounts-db`.
+- **spaces-service**: cat�logo de espacios y disponibilidad; consulta a reservations-service para bloques ocupados. DB: `spaces-db`.
+- **reservations-service**: crea/gestiona reservas y valida solapamientos por espacio. DB: `reservations-db`.
+- **gateway**: NGINX que enruta `/api/auth|users` ? accounts, `/api/spaces` ? spaces, `/api/reservations` ? reservations.
+- **frontend**: React/Vite servido por NGINX; consume la API v�a `gateway`.
 
-## Estructura modular (monorepo)
-- `core`: settings utilitarios y comando `seed`
-- `accounts`: usuario custom con roles `ADMIN` y `TEACHER`, endpoints de usuarios y `me`
-- `spaces`: CRUD de espacios
-- `reservations`: lógica de reservas, servicios de negocio y validaciones de solapamiento
+## Puertos expuestos (host)
+- Gateway: `http://localhost:8080`
+- Frontend: `http://localhost:3001` (proxy interno a gateway en `/api`)
+- MySQL: cuentas `3307`, espacios `3308`, reservas `3309` (opcional para debug)
 
-## Requisitos
-- Python 3.11
-- MySQL 8 (o MariaDB 10.6+)
-- PyMySQL no requiere compilación; Docker ya trae dependencias básicas
-- `pip` y `virtualenv` para ejecución local
+## Variables clave
+Todos los servicios comparten la misma clave JWT:
+- `JWT_SECRET` (default `super-secret-jwt`) debe ser id�ntica en accounts/spaces/reservations.
 
-## Variables de entorno (archivo `.env`)
-- `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `ALLOWED_HOSTS`
-- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`
-- `TIME_ZONE` (por defecto `America/Bogota`)
-- `RESERVATION_MIN_DURATION_MINUTES` (30) y `RESERVATION_MAX_DURATION_HOURS` (4)
-- `USE_SQLITE_FOR_TESTS=1` permite correr pytest sin MySQL (default en `.env.example`)
-- `CORS_ALLOWED_ORIGINS` (ej. `http://localhost:3000`)
+Duraciones de reservas (solo reservations-service):
+- `RESERVATION_MIN_DURATION_MINUTES` (default 30)
+- `RESERVATION_MAX_DURATION_HOURS` (default 4)
 
-Clona `.env.example` a `.env` y ajusta valores:
+## Levantar con Docker Compose
+1) (Opcional) crea un archivo `.env` en la ra�z con tus overrides (ej.: `JWT_SECRET=loquesea`).
+2) Ejecuta:
 ```bash
-cp .env.example .env
+docker compose up -d --build
 ```
+Cada API corre su migraci�n al arrancar. Semillas no incluidas; crea usuarios v�a `/api/users/` o admin Django si lo habilitas.
 
-## Ejecución con Docker Compose (recomendada)
-```bash
-docker compose up -d
-docker compose exec api python manage.py migrate
-docker compose exec api python manage.py seed
-```
-API: `http://localhost:8000/api/`  
-Docs: `http://localhost:8000/api/docs/`
+## Endpoints (v�a gateway)
+- Auth: `POST /api/auth/login/`, `POST /api/auth/refresh/`, `GET /api/auth/me/`
+- Users (ADMIN): `/api/users/`
+- Spaces: `/api/spaces/` CRUD (ADMIN para mutar) y `/api/spaces/{id}/availability/?start=&end=`
+- Reservations: `/api/reservations/` (listar por rango, filtrar `space_id`), `/api/reservations/mine/`,
+  crear `POST /api/reservations/`, acciones `/{id}/cancel/`, `/{id}/approve/`, `/{id}/reject/`,
+  disponibilidad liviana `GET /api/reservations/busy/?space_id=&start=&end=`
 
-Credenciales semilla:
-- Admin: `admin@fesc.local` / `Admin123!`
-- Teacher: `teacher@fesc.local` / `Teacher123!`
+## Comunicaci�n entre servicios
+- JWT stateless: spaces/reservations decodifican el token sin tabla de usuarios.
+- Spaces consulta availability en reservations-service (`/api/reservations/busy/`).
+- Reservations valida espacios en spaces-service (`/api/spaces/{id}/`).
+- Cada servicio usa su propia base de datos; no hay joins cruzados.
 
-## Ejecución local (sin Docker)
-1) Instala MySQL/MariaDB (o usa Docker). PyMySQL es puro Python, no necesita compilar.
-2) Prepara entorno virtual:
-```bash
-python -m venv .venv
-source .venv/bin/activate  # en Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-3) Copia `.env.example` a `.env` y apunta a tu instancia MySQL.  
-4) Migraciones y seed:
-```bash
-python manage.py migrate
-python manage.py seed
-```
-5) Levanta el servidor:
-```bash
-python manage.py runserver 0.0.0.0:8000
-```
+## Estructura de carpetas
+- `services/accounts_service/` (Django + DRF)
+- `services/spaces_service/` (Django + DRF, auth stateless)
+- `services/reservations_service/` (Django + DRF, auth stateless)
+- `gateway/nginx.conf` (routing API)
+- `frontend/` (React/Vite + nginx proxy a gateway)
 
-## Comandos útiles
-- Aplicar migraciones: `python manage.py migrate`
-- Crear datos demo: `python manage.py seed`
-- Crear superusuario: `python manage.py createsuperuser`
-- Ejecutar servidor dev: `python manage.py runserver 0.0.0.0:8000`
-- Ejecutar pruebas (SQLite si `USE_SQLITE_FOR_TESTS=1`): `pytest`
-- Generar tokens JWT: `POST /api/auth/login/` con `email` y `password`
-
-## Dockerfile y Compose
-- `Dockerfile` instala dependencias básicas y gunicorn, expone la app (PyMySQL no requiere compilación).
-- `docker-compose.yml` levanta `db` (MySQL) y `api` (Django). Ajusta puertos/env vars en `.env`.
-
-## Endpoints principales
-- Auth JWT: `POST /api/auth/login/`, `POST /api/auth/refresh/`, `GET /api/auth/me/`
-- Usuarios (solo ADMIN): CRUD en `/api/users/`
-- Espacios: `/api/spaces/` (ADMIN puede crear/editar/borrar)
-- Disponibilidad: `GET /api/spaces/{id}/availability/?start=&end=`
-- Reservas:
-  - Global (ocupación): `GET /api/reservations/?space=&start=&end=` (teacher ve datos públicos)
-  - Mías: `GET /api/reservations/mine/`
-  - Crear: `POST /api/reservations/`
-  - Detalle: `GET /api/reservations/{id}/` (teacher ajeno -> público)
-  - Cancelar: `POST /api/reservations/{id}/cancel/`
-  - Aprobar/Rechazar (ADMIN): `POST /api/reservations/{id}/approve/`, `POST /api/reservations/{id}/reject/`
-  - Editar (solo ADMIN, revalida solapamiento): `PATCH /api/reservations/{id}/`
-
-## Regla de solapamiento
-Se bloquean reservas PENDING/APPROVED que cumplan: `start_at < other.end_at AND end_at > other.start_at` en el mismo Space, ignorando REJECTED/CANCELLED.
-
-La validación y creación usan `transaction.atomic()` + `SELECT FOR UPDATE` en `reservations/services.py` para reducir condiciones de carrera.
-
-## Tests
-Se usan pytest + pytest-django (`USE_SQLITE_FOR_TESTS=1` en `.env` por defecto):
-```bash
-pytest
-```
-Cobertura mínima:
-- Solapamiento
-- Listado público para teacher y prohibición de PATCH
-- Cancelación propia (teacher)
-- Aprobar/Rechazar (admin)
-- Disponibilidad retorna bloques ocupados
-
-## Frontend React (Vite)
-- Ruta: `frontend/`
-- Configura `.env` desde `.env.example` (por defecto `VITE_API_BASE=http://localhost:8000/api`)
-- Instala/levanta: `cd frontend && npm install && npm run dev`
-- Incluye vistas por rol: login JWT, espacios, disponibilidad, reservas (rango), mis reservas y panel admin (aprobaciones y usuarios)
-
-## MySQL DDL
-DDL equivalente en `scripts/sql/schema.sql` (PK INT AUTO_INCREMENT, FK RESTRICT, índices requeridos).
-
-## Flujo de desarrollo local
-- `pip install -r requirements.txt`
-- `python manage.py migrate && python manage.py seed`
-- `python manage.py runserver 0.0.0.0:8000`
+## Scripts �tiles (contenedores)
+- Migraciones manuales: `docker compose exec accounts python manage.py migrate` (idem spaces/reservations)
+- Abrir shell Django: `docker compose exec reservations python manage.py shell`
 
 ## Notas
-- Las fechas deben ser timezone-aware (`America/Bogota`).
-- Duración mínima 30 minutos, máxima 4 horas (configurables).
-- Teacher no puede PATCH/PUT; cancela y crea nuevamente.
+- Tokens JWT incluyen `user_id`, `email`, `role`, `first_name`, `last_name`.
+- Disponibilidad: spaces-service devuelve lo que reservations-service reporte; si este falla, la respuesta es 502.
+- Para entornos no Docker, usa los `.env.example` dentro de cada servicio y ejecuta `python manage.py runserver` por servicio con DBs separadas.

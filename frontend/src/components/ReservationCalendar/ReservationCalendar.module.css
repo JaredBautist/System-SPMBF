@@ -1,0 +1,347 @@
+.calendar {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--gradient-primary-subtle);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerIcon {
+  color: var(--primary-color);
+}
+
+.monthYear {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: capitalize;
+  margin: 0;
+}
+
+.headerNav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.todayButton {
+  padding: 8px 16px;
+  background: var(--primary-color);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.todayButton:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.navButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.navButton {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-color);
+  background: var(--surface);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.navButton:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: rgba(183, 8, 3, 0.05);
+}
+
+.daysRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--surface-elevated);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dayName {
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.cell {
+  min-height: 120px;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.cell:last-child {
+  border-right: none;
+}
+
+.row:last-child .cell {
+  border-bottom: none;
+}
+
+.cell:hover:not(.disabled) {
+  background: var(--surface-elevated);
+}
+
+.cellHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dayNumber {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.reservationCount {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.disabled {
+  opacity: 0.4;
+  background: var(--surface-elevated);
+}
+
+.disabled:hover {
+  background: var(--surface-elevated);
+}
+
+.today .dayNumber {
+  background: var(--primary-color);
+  color: white;
+  font-weight: 700;
+}
+
+.selected {
+  background: rgba(183, 8, 3, 0.05) !important;
+  box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+.reservationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.reservationBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.reservationBadge:hover {
+  transform: scale(1.02);
+}
+
+.reservationTime {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.reservationTitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusPending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+  border-left: 3px solid var(--warning-color);
+}
+
+.statusApproved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #047857;
+  border-left: 3px solid var(--success-color);
+}
+
+.statusRejected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border-left: 3px solid var(--danger-color);
+}
+
+.statusCancelled {
+  background: rgba(107, 114, 128, 0.15);
+  color: var(--text-secondary);
+  border-left: 3px solid var(--secondary-color);
+}
+
+[data-theme="light"] .statusPending {
+  color: #92400e;
+}
+
+[data-theme="light"] .statusApproved {
+  color: #065f46;
+}
+
+[data-theme="light"] .statusRejected {
+  color: #b91c1c;
+}
+
+.moreReservations {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .cell {
+    min-height: 100px;
+    padding: 6px;
+  }
+
+  .dayName {
+    font-size: 10px;
+    padding: 8px 4px;
+  }
+
+  .reservationBadge {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .dayName {
+    display: none;
+  }
+
+  .daysRow {
+    display: none;
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .row {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cell {
+    min-height: auto;
+    padding: 12px;
+    border-right: none;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .disabled {
+    display: none;
+  }
+
+  .cellHeader {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .dayNumber {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .reservationsList {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .moreReservations {
+    padding: 4px 8px;
+    background: var(--surface-elevated);
+    border-radius: 6px;
+  }
+}

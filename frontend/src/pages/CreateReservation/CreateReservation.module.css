@@ -1,27 +1,73 @@
 .createPage {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
   margin-bottom: 32px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.headerIcon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba(183, 8, 3, 0.15), rgba(183, 8, 3, 0.05));
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-color);
+  flex-shrink: 0;
 }
 
 .header h1 {
-  font-size: 32px;
+  font-size: 28px;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .header p {
   color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Content Grid - Two Columns */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+}
+
+.formSection {
+  min-width: 0;
 }
 
 .formContainer {
   background: var(--surface);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 32px;
+  animation: slideUp 0.4s ease-out;
 }
 
 .form {
@@ -36,30 +82,58 @@
   gap: 8px;
 }
 
-.formGroup label {
+.formLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 500;
   color: var(--text-primary);
   font-size: 14px;
 }
 
-.formGroup input,
-.formGroup select,
-.formGroup textarea {
+.formLabel svg {
+  color: var(--text-secondary);
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
   padding: 12px 16px;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
-  background: var(--surface);          /* Added for theme support */
-  color: var(--text-primary);          /* Added for theme support */
+  background: var(--surface);
+  color: var(--text-primary);
   transition: all 0.2s;
 }
 
-.formGroup input:focus,
-.formGroup select:focus,
-.formGroup textarea:focus {
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(183, 8, 3, 0.15);  /* Changed to match your red primary */
+  box-shadow: 0 0 0 3px rgba(183, 8, 3, 0.1);
+}
+
+.inputError {
+  border-color: var(--danger-color) !important;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.errorText {
+  font-size: 12px;
+  color: var(--danger-color);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 .formRow {
@@ -69,19 +143,15 @@
 }
 
 .info {
-  background-color: rgba(183, 8, 3, 0.08);      /* Changed to your primary red */
-  border: 1px solid rgba(183, 8, 3, 0.25);      /* Changed to your primary red */
-  border-radius: 8px;
+  background-color: rgba(183, 8, 3, 0.06);
+  border: 1px solid rgba(183, 8, 3, 0.15);
+  border-radius: 10px;
   padding: 16px;
-  font-size: 14px;
-  color: var(--text-primary);
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
-.info ul {
-  margin: 8px 0 0 20px;
-}
-
-.info li {
+.info p {
   margin: 4px 0;
 }
 
@@ -93,10 +163,13 @@
 }
 
 .cancelBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px 24px;
   background-color: transparent;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
@@ -110,10 +183,13 @@
 }
 
 .submitBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px 24px;
   background-color: var(--primary-color);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   color: white;
   font-size: 14px;
   font-weight: 500;
@@ -123,6 +199,7 @@
 
 .submitBtn:hover:not(:disabled) {
   background-color: var(--primary-hover);
+  transform: translateY(-2px);
 }
 
 .submitBtn:disabled {
@@ -130,22 +207,70 @@
   cursor: not-allowed;
 }
 
-.error {
-  background-color: rgba(255, 68, 68, 0.15);
-  color: var(--danger-color);
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  border: 1px solid rgba(255, 68, 68, 0.3);
+.spinnerIcon {
+  animation: spin 1s linear infinite;
 }
 
-.success {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: var(--success-color);
-  padding: 12px 16px;
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Calendar Section */
+.calendarSection {
+  position: sticky;
+  top: 96px;
+}
+
+.calendarCard {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  animation: slideUp 0.4s ease-out 0.1s backwards;
+}
+
+.calendarCard h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.calendarHint {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.calendarLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.selectSpaceHint {
+  text-align: center;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
   border-radius: 8px;
-  font-size: 14px;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  margin-top: 12px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .calendarSection {
+    position: static;
+  }
 }
 
 @media (max-width: 768px) {
@@ -159,5 +284,14 @@
 
   .formActions button {
     width: 100%;
+    justify-content: center;
+  }
+
+  .formContainer {
+    padding: 20px;
+  }
+
+  .calendarCard {
+    padding: 16px;
   }
 }

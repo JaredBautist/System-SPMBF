@@ -27,17 +27,26 @@
   font-weight: 700;
   color: var(--primary-color);
   text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.navBrand a:hover {
+  opacity: 0.8;
+  text-decoration: none;
 }
 
 .navLinks {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   align-items: center;
 }
 
-.navLinks a {
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--text-secondary);
   text-decoration: none;
   font-weight: 500;
@@ -45,14 +54,27 @@
   font-size: 14px;
 }
 
-.navLinks a:hover {
-  color: var(--primary-color);
-  background-color: var(--surface-elevated);
+.navLink svg {
+  transition: transform 0.2s;
 }
 
-.navLinks a.active {
+.navLink:hover {
   color: var(--primary-color);
-  background-color: var(--surface-elevated);
+  background-color: rgba(183, 8, 3, 0.08);
+  text-decoration: none;
+}
+
+.navLink:hover svg {
+  transform: scale(1.1);
+}
+
+.navLink.active {
+  color: var(--primary-color);
+  background-color: rgba(183, 8, 3, 0.12);
+}
+
+.navLink.active svg {
+  color: var(--primary-color);
 }
 
 .divider {
@@ -100,20 +122,31 @@
 }
 
 .logoutBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 16px;
   background-color: transparent;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s;
 }
 
+.logoutBtn svg {
+  transition: transform 0.2s;
+}
+
 .logoutBtn:hover {
   background-color: var(--danger-color);
   border-color: var(--danger-color);
   color: white;
+}
+
+.logoutBtn:hover svg {
+  transform: translateX(2px);
 }
 
 .main {
@@ -125,6 +158,24 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 24px;
+}
+
+@media (max-width: 1024px) {
+  .navLink span {
+    display: none;
+  }
+
+  .navLink {
+    padding: 10px;
+  }
+
+  .logoutBtn span {
+    display: none;
+  }
+
+  .logoutBtn {
+    padding: 10px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -140,8 +191,32 @@
     justify-content: center;
   }
 
+  .navLink span {
+    display: inline;
+  }
+
+  .navLink {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
   .navUser {
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
+  }
+
+  .userName {
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+  }
+
+  .logoutBtn span {
+    display: inline;
+  }
+
+  .logoutBtn {
+    width: 100%;
+    justify-content: center;
   }
 }

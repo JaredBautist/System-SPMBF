@@ -71,8 +71,8 @@ def _parse_datetime(value):
         tags=["Reservas (Teacher)"],
         summary="Consultar reservas en un rango",
         description=(
-            "Admin ve todas las reservas con detalle completo. Teachers solo ven reservas en estado PENDING/APPROVED "
-            "con campos públicos."
+            "Admin ve todas las reservas con detalle completo. Teachers ven reservas en estado PENDING/APPROVED "
+            "con detalle completo (incluyendo quién creó y quién aprobó cada reserva)."
         ),
         parameters=LIST_PARAMS,
         responses=ReservationAdminSerializer(many=True),
@@ -80,7 +80,7 @@ def _parse_datetime(value):
     retrieve=extend_schema(
         tags=["Reservas (Teacher)"],
         summary="Detalle de reserva",
-        description="Admin u owner ven detalle completo; otros roles reciben versión pública.",
+        description="Todos los usuarios ven detalle completo de las reservas.",
         responses=ReservationAdminSerializer,
     ),
     create=extend_schema(
@@ -138,10 +138,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
             return ReservationCreateSerializer
         if self.action in ["update", "partial_update"]:
             return ReservationUpdateSerializer
-        if self.action == "list":
-            if self.request.user.role == User.Role.ADMIN:
-                return ReservationAdminSerializer
-            return ReservationPublicSerializer
         return ReservationAdminSerializer
 
     def _get_date_range(self, request):
@@ -182,10 +178,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         reservation = self.get_object()
-        if request.user.role == User.Role.ADMIN or reservation.created_by_id == request.user.id:
-            serializer = ReservationAdminSerializer(reservation)
-        else:
-            serializer = ReservationPublicSerializer(reservation)
+        serializer = ReservationAdminSerializer(reservation)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):

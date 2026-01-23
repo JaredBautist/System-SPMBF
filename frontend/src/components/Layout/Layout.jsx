@@ -1,5 +1,13 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import {
+  Home,
+  Users,
+  Building2,
+  CalendarCheck,
+  CalendarDays,
+  LogOut
+} from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import ThemeToggle from '../ThemeToggle/ThemeToggle'
 import LanguageToggle from '../LanguageToggle/LanguageToggle'
@@ -18,6 +26,17 @@ const Layout = ({ children }) => {
 
   const isActive = (path) => location.pathname === path
 
+  const navLinks = [
+    { path: '/', label: t('nav.home'), icon: Home },
+    { path: '/calendar', label: t('nav.calendar'), icon: CalendarDays }
+  ]
+
+  const adminLinks = [
+    { path: '/admin/users', label: t('nav.users'), icon: Users },
+    { path: '/admin/spaces', label: t('nav.adminSpaces'), icon: Building2 },
+    { path: '/admin/reservations', label: t('nav.adminReservations'), icon: CalendarCheck }
+  ]
+
   return (
     <div className={styles.layout}>
       <nav className={styles.navbar}>
@@ -27,34 +46,30 @@ const Layout = ({ children }) => {
           </div>
 
           <div className={styles.navLinks}>
-            <Link
-              to="/"
-              className={isActive('/') ? styles.active : ''}
-            >
-              {t('nav.home')}
-            </Link>
+            {navLinks.map(link => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`${styles.navLink} ${isActive(link.path) ? styles.active : ''}`}
+              >
+                <link.icon size={18} />
+                <span>{link.label}</span>
+              </Link>
+            ))}
 
             {isAdmin() && (
               <>
                 <div className={styles.divider}></div>
-                <Link
-                  to="/admin/users"
-                  className={isActive('/admin/users') ? styles.active : ''}
-                >
-                  {t('nav.users')}
-                </Link>
-                <Link
-                  to="/admin/spaces"
-                  className={isActive('/admin/spaces') ? styles.active : ''}
-                >
-                  {t('nav.adminSpaces')}
-                </Link>
-                <Link
-                  to="/admin/reservations"
-                  className={isActive('/admin/reservations') ? styles.active : ''}
-                >
-                  {t('nav.adminReservations')}
-                </Link>
+                {adminLinks.map(link => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`${styles.navLink} ${isActive(link.path) ? styles.active : ''}`}
+                  >
+                    <link.icon size={18} />
+                    <span>{link.label}</span>
+                  </Link>
+                ))}
               </>
             )}
           </div>
@@ -69,7 +84,8 @@ const Layout = ({ children }) => {
             <LanguageToggle />
             <ThemeToggle />
             <button onClick={handleLogout} className={styles.logoutBtn}>
-              {t('nav.logout')}
+              <LogOut size={18} />
+              <span>{t('nav.logout')}</span>
             </button>
           </div>
         </div>

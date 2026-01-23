@@ -1,0 +1,180 @@
+.miniCalendar {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.monthYear {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.navButton {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--surface-elevated);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.navButton:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.daysRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
+}
+
+.dayName {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  padding: 4px 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cell {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  min-height: 36px;
+}
+
+.cell:hover:not(.disabled) {
+  background: var(--surface-elevated);
+}
+
+.dayNumber {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.disabled:hover {
+  background: transparent;
+}
+
+.today {
+  background: rgba(183, 8, 3, 0.1);
+}
+
+.today .dayNumber {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.selected {
+  background: var(--primary-color) !important;
+}
+
+.selected .dayNumber {
+  color: white !important;
+}
+
+.highlighted {
+  box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+.reservationDots {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+  position: absolute;
+  bottom: 4px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pending {
+  background-color: var(--warning-color);
+}
+
+.approved {
+  background-color: var(--success-color);
+}
+
+.rejected {
+  background-color: var(--danger-color);
+}
+
+.moreDots {
+  font-size: 8px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  justify-content: center;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.legendItem .dot {
+  width: 8px;
+  height: 8px;
+}

@@ -1,5 +1,20 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import {
+  BookOpen,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Ban,
+  Filter,
+  MapPin,
+  Calendar,
+  MessageSquare,
+  Trash2,
+  Plus,
+  Loader2
+} from 'lucide-react'
 import reservationService from '../../services/reservationService'
 import { formatDateTime } from '../../utils/dateUtils'
 import styles from './MyReservations.module.css'
@@ -42,6 +57,16 @@ const MyReservations = () => {
     }
   }
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'PENDING': return <Clock size={14} />
+      case 'APPROVED': return <CheckCircle size={14} />
+      case 'REJECTED': return <XCircle size={14} />
+      case 'CANCELLED': return <Ban size={14} />
+      default: return null
+    }
+  }
+
   const getStatusBadge = (status) => {
     const statusMap = {
       PENDING: { label: t('status.pending'), className: styles.statusPending },
@@ -50,7 +75,12 @@ const MyReservations = () => {
       CANCELLED: { label: t('status.cancelled'), className: styles.statusCancelled },
     }
     const statusInfo = statusMap[status] || { label: status, className: '' }
-    return <span className={`${styles.badge} ${statusInfo.className}`}>{statusInfo.label}</span>
+    return (
+      <span className={`${styles.badge} ${statusInfo.className}`}>
+        {getStatusIcon(status)}
+        {statusInfo.label}
+      </span>
+    )
   }
 
   const filteredReservations = reservations.filter(r => {
@@ -58,59 +88,107 @@ const MyReservations = () => {
     return r.status === filter
   })
 
-  if (loading) return <div>{t('common.loading')}</div>
-  if (error) return <div className={styles.error}>{error}</div>
+  const stats = {
+    total: reservations.length,
+    pending: reservations.filter(r => r.status === 'PENDING').length,
+    approved: reservations.filter(r => r.status === 'APPROVED').length,
+    rejected: reservations.filter(r => r.status === 'REJECTED').length,
+    cancelled: reservations.filter(r => r.status === 'CANCELLED').length,
+  }
+
+  const filterButtons = [
+    { key: 'all', label: t('myReservations.all'), count: stats.total, icon: Filter },
+    { key: 'PENDING', label: t('myReservations.pending'), count: stats.pending, icon: Clock },
+    { key: 'APPROVED', label: t('myReservations.approved'), count: stats.approved, icon: CheckCircle },
+    { key: 'REJECTED', label: t('myReservations.rejected'), count: stats.rejected, icon: XCircle },
+    { key: 'CANCELLED', label: t('myReservations.cancelled'), count: stats.cancelled, icon: Ban },
+  ]
+
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <Loader2 size={40} className={styles.spinnerIcon} />
+        <p>{t('common.loading')}</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return <div className={styles.error}>{error}</div>
+  }
 
   return (
     <div className={styles.myReservationsPage}>
       <div className={styles.header}>
-        <h1>{t('myReservations.title')}</h1>
-        <p>{t('myReservations.subtitle')}</p>
+        <div className={styles.headerContent}>
+          <div className={styles.titleSection}>
+            <div className={styles.titleIcon}>
+              <BookOpen size={28} />
+            </div>
+            <div>
+              <h1>{t('myReservations.title')}</h1>
+              <p>{t('myReservations.subtitle')}</p>
+            </div>
+          </div>
+          <Link to="/create-reservation" className={styles.newButton}>
+            <Plus size={18} />
+            {t('dashboard.newReservation')}
+          </Link>
+        </div>
+
+        {/* Mini Stats */}
+        <div className={styles.miniStats}>
+          <div className={styles.miniStat}>
+            <span className={styles.miniStatValue}>{stats.total}</span>
+            <span className={styles.miniStatLabel}>{t('myReservations.all')}</span>
+          </div>
+          <div className={`${styles.miniStat} ${styles.pending}`}>
+            <span className={styles.miniStatValue}>{stats.pending}</span>
+            <span className={styles.miniStatLabel}>{t('myReservations.pending')}</span>
+          </div>
+          <div className={`${styles.miniStat} ${styles.approved}`}>
+            <span className={styles.miniStatValue}>{stats.approved}</span>
+            <span className={styles.miniStatLabel}>{t('myReservations.approved')}</span>
+          </div>
+        </div>
       </div>
 
       <div className={styles.filters}>
-        <button
-          className={filter === 'all' ? styles.filterActive : ''}
-          onClick={() => setFilter('all')}
-        >
-          {t('myReservations.all')} ({reservations.length})
-        </button>
-        <button
-          className={filter === 'PENDING' ? styles.filterActive : ''}
-          onClick={() => setFilter('PENDING')}
-        >
-          {t('myReservations.pending')} ({reservations.filter(r => r.status === 'PENDING').length})
-        </button>
-        <button
-          className={filter === 'APPROVED' ? styles.filterActive : ''}
-          onClick={() => setFilter('APPROVED')}
-        >
-          {t('myReservations.approved')} ({reservations.filter(r => r.status === 'APPROVED').length})
-        </button>
-        <button
-          className={filter === 'REJECTED' ? styles.filterActive : ''}
-          onClick={() => setFilter('REJECTED')}
-        >
-          {t('myReservations.rejected')} ({reservations.filter(r => r.status === 'REJECTED').length})
-        </button>
-        <button
-          className={filter === 'CANCELLED' ? styles.filterActive : ''}
-          onClick={() => setFilter('CANCELLED')}
-        >
-          {t('myReservations.cancelled')} ({reservations.filter(r => r.status === 'CANCELLED').length})
-        </button>
+        {filterButtons.map(btn => (
+          <button
+            key={btn.key}
+            className={`${styles.filterBtn} ${filter === btn.key ? styles.filterActive : ''}`}
+            onClick={() => setFilter(btn.key)}
+          >
+            <btn.icon size={16} />
+            <span>{btn.label}</span>
+            <span className={styles.filterCount}>{btn.count}</span>
+          </button>
+        ))}
       </div>
 
       {filteredReservations.length === 0 ? (
-        <p className={styles.emptyState}>{t('myReservations.noReservations')}</p>
+        <div className={styles.emptyState}>
+          <Calendar size={48} className={styles.emptyIcon} />
+          <p>{t('myReservations.noReservations')}</p>
+          <Link to="/create-reservation" className={styles.createButton}>
+            <Plus size={18} />
+            {t('dashboard.newReservation')}
+          </Link>
+        </div>
       ) : (
         <div className={styles.reservationsList}>
-          {filteredReservations.map((reservation) => (
-            <div key={reservation.id} className={styles.reservationCard}>
+          {filteredReservations.map((reservation, index) => (
+            <div
+              key={reservation.id}
+              className={styles.reservationCard}
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
               <div className={styles.cardHeader}>
                 <div>
                   <h3>{reservation.title}</h3>
                   <p className={styles.spaceInfo}>
+                    <MapPin size={14} />
                     {reservation.space?.name || t('myReservations.noSpaceAssigned')}
                   </p>
                 </div>
@@ -124,19 +202,28 @@ const MyReservations = () => {
 
                 <div className={styles.details}>
                   <div className={styles.detailItem}>
-                    <strong>{t('myReservations.start')}:</strong>
-                    <span>{formatDateTime(reservation.start_at)}</span>
+                    <Calendar size={14} />
+                    <div>
+                      <strong>{t('myReservations.start')}</strong>
+                      <span>{formatDateTime(reservation.start_at)}</span>
+                    </div>
                   </div>
                   <div className={styles.detailItem}>
-                    <strong>{t('myReservations.end')}:</strong>
-                    <span>{formatDateTime(reservation.end_at)}</span>
+                    <Clock size={14} />
+                    <div>
+                      <strong>{t('myReservations.end')}</strong>
+                      <span>{formatDateTime(reservation.end_at)}</span>
+                    </div>
                   </div>
                 </div>
 
                 {reservation.decision_note && (
                   <div className={styles.decisionNote}>
-                    <strong>{t('myReservations.decisionNote')}:</strong>
-                    <p>{reservation.decision_note}</p>
+                    <MessageSquare size={14} />
+                    <div>
+                      <strong>{t('myReservations.decisionNote')}</strong>
+                      <p>{reservation.decision_note}</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -147,6 +234,7 @@ const MyReservations = () => {
                     onClick={() => handleCancel(reservation.id)}
                     className={styles.cancelBtn}
                   >
+                    <Trash2 size={16} />
                     {t('myReservations.cancelReservation')}
                   </button>
                 )}

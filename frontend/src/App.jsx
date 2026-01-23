@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard/Dashboard'
 import Spaces from './pages/Spaces/Spaces'
 import MyReservations from './pages/MyReservations/MyReservations'
 import CreateReservation from './pages/CreateReservation/CreateReservation'
+import ReservationsCalendar from './pages/ReservationsCalendar/ReservationsCalendar'
 import AdminUsers from './pages/Admin/AdminUsers/AdminUsers'
 import AdminSpaces from './pages/Admin/AdminSpaces/AdminSpaces'
 import AdminReservations from './pages/Admin/AdminReservations/AdminReservations'
@@ -27,6 +28,7 @@ function App() {
               <Route path="/spaces" element={<ProtectedRoute><Spaces /></ProtectedRoute>} />
               <Route path="/my-reservations" element={<ProtectedRoute><MyReservations /></ProtectedRoute>} />
               <Route path="/create-reservation" element={<ProtectedRoute><CreateReservation /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><ReservationsCalendar /></ProtectedRoute>} />
 
               {/* Admin Routes */}
               <Route path="/admin/users" element={<ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute>} />
