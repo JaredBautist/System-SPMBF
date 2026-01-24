@@ -46,12 +46,25 @@ class ReservationAdminSerializer(serializers.ModelSerializer):
 
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
+    space_id = serializers.IntegerField(required=False, allow_null=True, write_only=True)
+
     class Meta:
         model = Reservation
-        fields = ["title", "description", "start_at", "end_at", "space"]
+        fields = ["title", "description", "start_at", "end_at", "space", "space_id"]
         extra_kwargs = {
-            'space': {'required': False, 'allow_null': True}
+            'space': {'required': False, 'allow_null': True, 'read_only': True}
         }
+
+    def validate(self, attrs):
+        # Si se envía space_id, usarlo para obtener el espacio
+        space_id = attrs.pop('space_id', None)
+        if space_id is not None:
+            from spaces.models import Space
+            try:
+                attrs['space'] = Space.objects.get(id=space_id)
+            except Space.DoesNotExist:
+                raise serializers.ValidationError({"space_id": "No se encontró el espacio"})
+        return attrs
 
 
 class ReservationUpdateSerializer(serializers.ModelSerializer):

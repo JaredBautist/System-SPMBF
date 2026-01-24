@@ -40,7 +40,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [user])
 
   const loadData = async () => {
     try {
@@ -50,14 +50,17 @@ const Dashboard = () => {
       const monthStart = startOfMonth(now)
       const monthEnd = endOfMonth(now)
 
+      // Admin ve todas las reservas, docente solo las suyas
+      const serviceMethod = isAdmin() ? reservationService.getAll : reservationService.getMine
+
       // Load upcoming reservations for next 7 days
-      const upcomingData = await reservationService.getMine({
+      const upcomingData = await serviceMethod({
         start: now.toISOString(),
         end: end.toISOString(),
       })
 
       // Load all reservations this month for stats
-      const monthData = await reservationService.getMine({
+      const monthData = await serviceMethod({
         start: monthStart.toISOString(),
         end: monthEnd.toISOString(),
       })

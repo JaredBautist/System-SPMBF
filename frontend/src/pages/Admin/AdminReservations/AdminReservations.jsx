@@ -22,7 +22,15 @@ const AdminReservations = () => {
   const loadReservations = async () => {
     try {
       setLoading(true)
-      const data = await reservationService.getAll()
+      // Obtener reservas con un rango más amplio para asegurar que se vean todas las pendientes
+      const now = new Date()
+      const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) // 30 días atrás
+      const endDate = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000) // 90 días adelante
+      const params = {
+        start: startDate.toISOString(),
+        end: endDate.toISOString()
+      }
+      const data = await reservationService.getAll(params)
       setReservations(data)
     } catch (err) {
       setError(t('common.error'))
