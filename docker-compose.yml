@@ -62,7 +62,7 @@ services:
     environment:
       DJANGO_DEBUG: ${ACCOUNTS_DEBUG:-0}
       DJANGO_SECRET_KEY: ${ACCOUNTS_SECRET_KEY:-change-me}
-      ALLOWED_HOSTS: ${ACCOUNTS_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,192.168.20.25,gateway,accounts,frontend}
+      ALLOWED_HOSTS: ${ACCOUNTS_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,192.168.43.30,gateway,accounts,frontend}
       DB_HOST: accounts-db
       DB_PORT: 3306
       DB_NAME: ${ACCOUNTS_DB_NAME:-accounts_db}
@@ -72,7 +72,7 @@ services:
       CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8080,http://localhost:3000
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt}
     command: >
-      sh -c "python wait_for_db.py && python manage.py migrate && gunicorn accounts_service.wsgi:application --bind 0.0.0.0:8000"
+      sh -c "python wait_for_db.py && python manage.py migrate && gunicorn accounts_service.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 2 --timeout 120"
 
   spaces-db:
     image: mysql:8.0
@@ -112,7 +112,7 @@ services:
     environment:
       DJANGO_DEBUG: ${SPACES_DEBUG:-0}
       DJANGO_SECRET_KEY: ${SPACES_SECRET_KEY:-change-me}
-      ALLOWED_HOSTS: ${SPACES_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,192.168.20.25,gateway,spaces,frontend}
+      ALLOWED_HOSTS: ${SPACES_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,192.168.43.30,gateway,spaces,frontend}
       DB_HOST: spaces-db
       DB_PORT: 3306
       DB_NAME: ${SPACES_DB_NAME:-spaces_db}
@@ -123,7 +123,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt}
       RESERVATIONS_BASE_URL: http://reservations:8000/api
     command: >
-      sh -c "python wait_for_db.py && python manage.py migrate && gunicorn spaces_service.wsgi:application --bind 0.0.0.0:8000"
+      sh -c "python wait_for_db.py && python manage.py migrate && gunicorn spaces_service.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 2 --timeout 120"
 
   reservations-db:
     image: mysql:8.0
@@ -161,7 +161,7 @@ services:
     environment:
       DJANGO_DEBUG: ${RESERVATIONS_DEBUG:-0}
       DJANGO_SECRET_KEY: ${RESERVATIONS_SECRET_KEY:-change-me}
-      ALLOWED_HOSTS: ${RESERVATIONS_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,192.168.20.25,gateway,reservations,frontend}
+      ALLOWED_HOSTS: ${RESERVATIONS_ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0,192.168.43.30,gateway,reservations,frontend}
       DB_HOST: reservations-db
       DB_PORT: 3306
       DB_NAME: ${RESERVATIONS_DB_NAME:-reservations_db}
@@ -174,7 +174,7 @@ services:
       RESERVATION_MAX_DURATION_HOURS: 4
       SPACES_BASE_URL: http://spaces:8000/api
     command: >
-      sh -c "python wait_for_db.py && python manage.py migrate && gunicorn reservations_service.wsgi:application --bind 0.0.0.0:8000"
+      sh -c "python wait_for_db.py && python manage.py migrate && gunicorn reservations_service.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 2 --timeout 120"
 
 volumes:
   accounts_mysql_data:
