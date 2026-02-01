@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import spaceService from '../../../services/spaceService'
 import FormField from '../../../components/FormField'
 import FormAlert from '../../../components/FormAlert'
 import styles from './AdminSpaces.module.css'
 
 const AdminSpaces = () => {
+  const { t } = useTranslation()
   const [spaces, setSpaces] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -29,7 +31,7 @@ const AdminSpaces = () => {
       const data = await spaceService.getAll()
       setSpaces(data)
     } catch (err) {
-      setLoadError('Error loading available spaces')
+      setLoadError(t('adminSpaces.errorLoading'))
       console.error(err)
     } finally {
       setLoading(false)
@@ -88,14 +90,14 @@ const AdminSpaces = () => {
   const validateField = (name, value) => {
     switch (name) {
       case 'name':
-        if (!value.trim()) return 'Name is required'
-        if (value.length < 2) return 'Name must be at least 2 characters'
+        if (!value.trim()) return t('adminSpaces.nameRequired')
+        if (value.length < 2) return t('adminSpaces.nameMinLength')
         return ''
       case 'description':
-        if (!value.trim()) return 'Description is required'
+        if (!value.trim()) return t('adminSpaces.descriptionRequired')
         return ''
       case 'location':
-        if (!value.trim()) return 'Location is required'
+        if (!value.trim()) return t('adminSpaces.locationRequired')
         return ''
       default:
         return ''
@@ -134,40 +136,40 @@ const AdminSpaces = () => {
       await loadSpaces()
       handleCloseModal()
     } catch (err) {
-      setFormError(err.response?.data?.detail || 'Error saving that space')
+      setFormError(err.response?.data?.detail || t('adminSpaces.errorSaving'))
     }
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this space? You cannot undo this action.')) return
+    if (!confirm(t('adminSpaces.confirmDelete'))) return
 
     try {
       await spaceService.delete(id)
       await loadSpaces()
     } catch (err) {
-      alert('Error deleting that space')
+      alert(t('adminSpaces.errorDeleting'))
       console.error(err)
     }
   }
 
-  if (loading) return <div>Loading available spaces...</div>
+  if (loading) return <div>{t('adminSpaces.loading')}</div>
 
   return (
     <div className={styles.adminSpacesPage}>
       <div className={styles.header}>
         <div>
-          <h1>Spaces Management</h1>
-          <p>Manage the spaces available for reservation</p>
+          <h1>{t('adminSpaces.title')}</h1>
+          <p>{t('adminSpaces.subtitle')}</p>
         </div>
         <button onClick={() => handleOpenModal()} className={styles.createBtn}>
-          + Create Space
+          + {t('adminSpaces.createSpace')}
         </button>
       </div>
 
       {loadError && <FormAlert type="error" message={loadError} />}
 
       {spaces.length === 0 ? (
-        <p className={styles.emptyState}>No new spaces</p>
+        <p className={styles.emptyState}>{t('adminSpaces.noSpaces')}</p>
       ) : (
         <div className={styles.spacesGrid}>
           {spaces.map(space => (
@@ -175,25 +177,25 @@ const AdminSpaces = () => {
               <div className={styles.cardHeader}>
                 <h3>{space.name}</h3>
                 <span className={space.is_active ? styles.statusActive : styles.statusInactive}>
-                  {space.is_active ? 'Active' : 'Inactive'}
+                  {space.is_active ? t('adminSpaces.active') : t('adminSpaces.inactive')}
                 </span>
               </div>
               <p className={styles.description}>{space.description}</p>
               <p className={styles.location}>
-                <strong>Location:</strong> {space.location}
+                <strong>{t('adminSpaces.location')}:</strong> {space.location}
               </p>
               <div className={styles.cardActions}>
                 <button
                   onClick={() => handleOpenModal(space)}
                   className={styles.editBtn}
                 >
-                  Edit
+                  {t('adminSpaces.edit')}
                 </button>
                 <button
                   onClick={() => handleDelete(space.id)}
                   className={styles.deleteBtn}
                 >
-                  Delete
+                  {t('adminSpaces.delete')}
                 </button>
               </div>
             </div>
@@ -205,7 +207,7 @@ const AdminSpaces = () => {
         <div className={styles.modalOverlay} onClick={handleCloseModal}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>{editingSpace ? 'Edit Space' : 'Create Space'}</h2>
+              <h2>{editingSpace ? t('adminSpaces.editSpace') : t('adminSpaces.createSpace')}</h2>
               <button onClick={handleCloseModal} className={styles.closeBtn}>×</button>
             </div>
 
@@ -217,18 +219,18 @@ const AdminSpaces = () => {
 
             <form onSubmit={handleSubmit} className={styles.form}>
               <FormField
-                label="Name"
+                label={t('adminSpaces.name')}
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 error={errors.name}
                 required
-                placeholder="3° Module"
+                placeholder={t('adminSpaces.namePlaceholder')}
               />
 
               <FormField
-                label="Description"
+                label={t('adminSpaces.description')}
                 name="description"
                 as="textarea"
                 value={formData.description}
@@ -237,34 +239,34 @@ const AdminSpaces = () => {
                 error={errors.description}
                 required
                 rows={3}
-                placeholder="Space Description"
+                placeholder={t('adminSpaces.descriptionPlaceholder')}
               />
 
               <FormField
-                label="Location"
+                label={t('adminSpaces.location')}
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 error={errors.location}
                 required
-                placeholder="App #2, Street 8-3"
+                placeholder={t('adminSpaces.locationPlaceholder')}
               />
 
               <FormField
                 type="checkbox"
                 name="is_active"
-                label="Active Space"
+                label={t('adminSpaces.activeSpace')}
                 checked={formData.is_active}
                 onChange={handleChange}
               />
 
               <div className={styles.modalActions}>
                 <button type="button" onClick={handleCloseModal} className={styles.cancelBtn}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className={styles.submitBtn}>
-                  {editingSpace ? 'Update' : 'Create'}
+                  {editingSpace ? t('adminSpaces.update') : t('common.create')}
                 </button>
               </div>
             </form>

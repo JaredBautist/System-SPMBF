@@ -2,6 +2,7 @@
 
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.http import HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
@@ -27,6 +28,7 @@ from reservations.services import (
     reject_reservation,
     update_reservation,
 )
+from reservations.reporting import build_reservations_report
 
 DATE_RANGE_PARAMS = [
     OpenApiParameter(
@@ -129,6 +131,20 @@ def _parse_datetime(value):
         parameters=LIST_PARAMS,
         description="Endpoint ligero para que spaces-service consulte disponibilidad.",
     ),
+    report=extend_schema(
+        tags=["Reservas (Admin)"],
+        summary="Generar PDF de reservas",
+        parameters=LIST_PARAMS
+        + [
+            OpenApiParameter(
+                name="status",
+                type=OpenApiTypes.STR,
+                required=False,
+                description="Filtra por estado. Acepta valores separados por coma (PENDING,APPROVED,REJECTED,CANCELLED).",
+            )
+        ],
+        responses={200: {"content": {"application/pdf": {}}}},
+    ),
 )
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.all()
@@ -136,7 +152,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
     serializer_class = ReservationAdminSerializer
 
     def get_permissions(self):
-        if self.action in ["update", "partial_update", "approve", "reject"]:
+        if self.action in ["update", "partial_update", "approve", "reject", "report"]:
             return [IsAuthenticated(), IsAdminRole()]
         return super().get_permissions()
 
@@ -223,6 +239,47 @@ class ReservationViewSet(viewsets.ModelViewSet):
         reservation = reject_reservation(request.user, reservation, serializer.validated_data.get("note"))
         return Response(ReservationAdminSerializer(reservation).data)
 
+    @action(detail=False, methods=["get"], url_path="report")
+    def report(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        start_param = request.query_params.get("start")
+        end_param = request.query_params.get("end")
+        space_param = request.query_params.get("space_id") or request.query_params.get("space")
+        status_param = request.query_params.get("status")
+
+        start_dt = _parse_datetime(start_param) if start_param else None
+        end_dt = _parse_datetime(end_param) if end_param else None
+        if start_dt and end_dt and start_dt >= end_dt:
+            raise ValidationError("La fecha de inicio debe ser anterior a la fecha fin")
+
+        if start_dt:
+            queryset = queryset.filter(end_at__gte=start_dt)
+        if end_dt:
+            queryset = queryset.filter(start_at__lte=end_dt)
+        if space_param:
+            queryset = queryset.filter(space_id=space_param)
+
+        statuses = None
+        if status_param and status_param.lower() != "all":
+            statuses = [s.strip().upper() for s in status_param.split(",") if s.strip()]
+            valid_statuses = {choice[0] for choice in Reservation.Status.choices}
+            statuses = [s for s in statuses if s in valid_statuses]
+            if statuses:
+                queryset = queryset.filter(status__in=statuses)
+
+        reservations = queryset.order_by("space_name", "start_at")
+        pdf_bytes = build_reservations_report(
+            reservations,
+            start=start_dt,
+            end=end_dt,
+            space=space_param,
+            statuses=statuses,
+        )
+        filename = f"reporte_reservas_{timezone.now().strftime('%Y%m%d_%H%M')}.pdf"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename=\"{filename}\"'
+        return response
+
     @action(detail=False, methods=["get"], url_path="busy")
     def busy(self, request):
         space_id = request.query_params.get("space_id")
@@ -231,4 +288,3 @@ class ReservationViewSet(viewsets.ModelViewSet):
         start_dt, end_dt = self._get_date_range(request)
         blocks = busy_blocks(space_id, start_dt, end_dt)
         return Response({"space_id": int(space_id), "start": start_dt, "end": end_dt, "busy": blocks})
-

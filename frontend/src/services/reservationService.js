@@ -40,6 +40,14 @@ const reservationService = {
     const response = await apiClient.post(`/reservations/${id}/reject/`, { note })
     return response.data
   },
+
+  async downloadReport(params = {}) {
+    const response = await apiClient.get('/reservations/report/', {
+      params,
+      responseType: 'blob',
+    })
+    return response.data
+  },
 }
 
 export default reservationService

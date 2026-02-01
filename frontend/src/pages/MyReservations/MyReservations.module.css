@@ -146,6 +146,14 @@
   color: var(--success-color);
 }
 
+.miniStat.rejected {
+  border-color: rgba(255, 68, 68, 0.3);
+}
+
+.miniStat.rejected .miniStatValue {
+  color: var(--danger-color);
+}
+
 /* Filters */
 .filters {
   display: flex;

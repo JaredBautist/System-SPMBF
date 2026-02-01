@@ -92,3 +92,31 @@ def test_create_reservation_uses_default_space(api_client, teacher_user):
     assert resp.status_code == status.HTTP_201_CREATED
     res = Reservation.objects.get(id=resp.data["id"])
     assert res.space is not None
+
+
+@pytest.mark.django_db
+def test_admin_can_download_pdf_report(api_client, space, admin_user, teacher_user):
+    now = timezone.now()
+    Reservation.objects.create(
+        space=space,
+        created_by=teacher_user,
+        title="Approved one",
+        start_at=now + timedelta(days=1),
+        end_at=now + timedelta(days=1, hours=1),
+        status=Reservation.Status.APPROVED,
+    )
+    Reservation.objects.create(
+        space=space,
+        created_by=teacher_user,
+        title="Rejected one",
+        start_at=now + timedelta(days=2),
+        end_at=now + timedelta(days=2, hours=1),
+        status=Reservation.Status.REJECTED,
+        decision_note="No disponible",
+    )
+
+    api_client.force_authenticate(user=admin_user)
+    resp = api_client.get("/api/reservations/report/")
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp["Content-Type"] == "application/pdf"
+    assert resp.content.startswith(b"%PDF")

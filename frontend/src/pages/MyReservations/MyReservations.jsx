@@ -150,6 +150,10 @@ const MyReservations = () => {
             <span className={styles.miniStatValue}>{stats.approved}</span>
             <span className={styles.miniStatLabel}>{t('myReservations.approved')}</span>
           </div>
+          <div className={`${styles.miniStat} ${styles.rejected}`}>
+            <span className={styles.miniStatValue}>{stats.rejected}</span>
+            <span className={styles.miniStatLabel}>{t('myReservations.rejected')}</span>
+          </div>
         </div>
       </div>
 

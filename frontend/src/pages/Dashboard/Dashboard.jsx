@@ -10,7 +10,8 @@ import {
   CalendarCheck,
   AlertCircle,
   Building2,
-  MapPin
+  MapPin,
+  FileDown
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import reservationService from '../../services/reservationService'
@@ -37,6 +38,8 @@ const Dashboard = () => {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportError, setReportError] = useState('')
 
   useEffect(() => {
     loadData()
@@ -81,7 +84,7 @@ const Dashboard = () => {
         nextReservation: nextApproved || null
       })
     } catch (err) {
-      setError('Error loading reservations')
+      setError(t('calendar.errorLoading'))
       console.error(err)
     } finally {
       setLoading(false)
@@ -149,11 +152,48 @@ const Dashboard = () => {
     })
   }
 
+  const handleDownloadReport = async () => {
+    try {
+      setReportError('')
+      setReportLoading(true)
+      const data = await reservationService.downloadReport()
+      const blob = new Blob([data], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `reporte-reservas-${new Date().toISOString().slice(0, 10)}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error(err)
+      setReportError(t('dashboard.reportError'))
+    } finally {
+      setReportLoading(false)
+    }
+  }
+
   return (
     <div className={styles.dashboard}>
       <div className={styles.header}>
         <h1>{t('dashboard.welcome', { name: user?.first_name })}</h1>
-        <p>{t('dashboard.subtitle')}</p>
+        <div className={styles.headerRow}>
+          <p>{t('dashboard.subtitle')}</p>
+          {isAdmin() && (
+            <div className={styles.headerActions}>
+              <button
+                className={styles.downloadBtn}
+                onClick={handleDownloadReport}
+                disabled={reportLoading}
+              >
+                <FileDown size={16} />
+                {reportLoading ? t('dashboard.generatingReport') : t('dashboard.downloadReport')}
+              </button>
+              {reportError && <span className={styles.reportError}>{reportError}</span>}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stats Section */}

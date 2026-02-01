@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from drf_spectacular.types import OpenApiTypes
@@ -29,6 +30,7 @@ from reservations.services import (
     reject_reservation,
     validate_overlap,
 )
+from reservations.reporting import build_reservations_report
 
 User = get_user_model()
 
@@ -127,6 +129,20 @@ def _parse_datetime(value):
         request=ReservationDecisionSerializer,
         responses=ReservationAdminSerializer,
     ),
+    report=extend_schema(
+        tags=["Reservas (Admin)"],
+        summary="Generar PDF de reservas",
+        parameters=LIST_PARAMS
+        + [
+            OpenApiParameter(
+                name="status",
+                type=OpenApiTypes.STR,
+                required=False,
+                description="Filtra por estado. Valores separados por coma (PENDING,APPROVED,REJECTED,CANCELLED).",
+            )
+        ],
+        responses={200: {"content": {"application/pdf": {}}}},
+    ),
 )
 class ReservationViewSet(viewsets.ModelViewSet):
     queryset = Reservation.objects.select_related("space", "created_by", "approved_by").all()
@@ -207,6 +223,47 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
+
+    @action(detail=False, methods=["get"], url_path="report", permission_classes=[IsAuthenticated, IsAdminRole])
+    def report(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        start_param = request.query_params.get("start")
+        end_param = request.query_params.get("end")
+        space_param = request.query_params.get("space") or request.query_params.get("space_id")
+        status_param = request.query_params.get("status")
+
+        start_dt = _parse_datetime(start_param) if start_param else None
+        end_dt = _parse_datetime(end_param) if end_param else None
+        if start_dt and end_dt and start_dt >= end_dt:
+            raise ValidationError("La fecha de inicio debe ser anterior a la fecha fin")
+
+        if start_dt:
+            queryset = queryset.filter(end_at__gte=start_dt)
+        if end_dt:
+            queryset = queryset.filter(start_at__lte=end_dt)
+        if space_param:
+            queryset = queryset.filter(space_id=space_param)
+
+        statuses = None
+        if status_param and status_param.lower() != "all":
+            statuses = [s.strip().upper() for s in status_param.split(",") if s.strip()]
+            valid_statuses = {choice[0] for choice in Reservation.Status.choices}
+            statuses = [s for s in statuses if s in valid_statuses]
+            if statuses:
+                queryset = queryset.filter(status__in=statuses)
+
+        reservations = queryset.select_related("space", "created_by", "approved_by").order_by("space__name", "start_at")
+        pdf_bytes = build_reservations_report(
+            reservations,
+            start=start_dt,
+            end=end_dt,
+            space=space_param,
+            statuses=statuses,
+        )
+        filename = f"reporte_reservas_{timezone.now().strftime('%Y%m%d_%H%M')}.pdf"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename=\"{filename}\"'
+        return response
 
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated, IsOwnerOrAdmin])
     def cancel(self, request, pk=None):

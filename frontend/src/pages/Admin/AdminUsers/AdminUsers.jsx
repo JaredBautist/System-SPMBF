@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import userService from '../../../services/userService'
 import FormField from '../../../components/FormField'
 import FormAlert from '../../../components/FormAlert'
 import styles from './AdminUsers.module.css'
 
 const AdminUsers = () => {
+  const { t } = useTranslation()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -31,7 +33,7 @@ const AdminUsers = () => {
       const data = await userService.getAll()
       setUsers(data)
     } catch (err) {
-      setLoadError('Error loading users')
+      setLoadError(t('adminUsers.errorLoading'))
       console.error(err)
     } finally {
       setLoading(false)
@@ -94,19 +96,19 @@ const AdminUsers = () => {
   const validateField = (name, value) => {
     switch (name) {
       case 'email':
-        if (!value.trim()) return 'Email is required'
+        if (!value.trim()) return t('adminUsers.emailRequired')
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(value)) return 'Please enter a valid email'
+        if (!emailRegex.test(value)) return t('adminUsers.emailInvalid')
         return ''
       case 'first_name':
-        if (!value.trim()) return 'Name is required'
+        if (!value.trim()) return t('adminUsers.nameRequired')
         return ''
       case 'last_name':
-        if (!value.trim()) return 'Surname is required'
+        if (!value.trim()) return t('adminUsers.lastNameRequired')
         return ''
       case 'password':
-        if (!editingUser && !value) return 'Password is required'
-        if (value && value.length < 6) return 'Password must be at least 6 characters'
+        if (!editingUser && !value) return t('adminUsers.passwordRequired')
+        if (value && value.length < 6) return t('adminUsers.passwordMinLength')
         return ''
       default:
         return ''
@@ -153,52 +155,52 @@ const AdminUsers = () => {
       await loadUsers()
       handleCloseModal()
     } catch (err) {
-      setFormError(err.response?.data?.detail || 'Error saving user')
+      setFormError(err.response?.data?.detail || t('adminUsers.errorSaving'))
     }
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Deactivate this user?')) return
+    if (!confirm(t('adminUsers.confirmDeactivate'))) return
 
     try {
       await userService.delete(id)
       await loadUsers()
     } catch (err) {
-      alert('Error deactivating user')
+      alert(t('adminUsers.errorDeactivating'))
       console.error(err)
     }
   }
 
-  if (loading) return <div>Loading users...</div>
+  if (loading) return <div>{t('adminUsers.loading')}</div>
 
   return (
     <div className={styles.adminUsersPage}>
       <div className={styles.header}>
         <div>
-          <h1>User Management</h1>
-          <p>Manage all users in the system</p>
+          <h1>{t('adminUsers.title')}</h1>
+          <p>{t('adminUsers.subtitle')}</p>
         </div>
         <button onClick={() => handleOpenModal()} className={styles.createBtn}>
-          + Create User
+          + {t('adminUsers.createUser')}
         </button>
       </div>
 
       {loadError && <FormAlert type="error" message={loadError} />}
 
       {users.length === 0 ? (
-        <p className={styles.emptyState}>No users found</p>
+        <p className={styles.emptyState}>{t('adminUsers.noUsers')}</p>
       ) : (
         <div className={styles.tableContainer}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>E-mail</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Registration Date</th>
-                <th>Actions</th>
+                <th>{t('adminUsers.id')}</th>
+                <th>{t('adminUsers.name')}</th>
+                <th>{t('adminUsers.email')}</th>
+                <th>{t('adminUsers.role')}</th>
+                <th>{t('adminUsers.status')}</th>
+                <th>{t('adminUsers.registrationDate')}</th>
+                <th>{t('adminUsers.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -214,7 +216,7 @@ const AdminUsers = () => {
                   </td>
                   <td>
                     <span className={user.is_active ? styles.statusActive : styles.statusInactive}>
-                      {user.is_active ? 'Active' : 'Inactive'}
+                      {user.is_active ? t('adminUsers.active') : t('adminUsers.inactive')}
                     </span>
                   </td>
                   <td>{new Date(user.date_joined).toLocaleDateString()}</td>
@@ -224,13 +226,13 @@ const AdminUsers = () => {
                         onClick={() => handleOpenModal(user)}
                         className={styles.editBtn}
                       >
-                        Edit
+                        {t('adminUsers.edit')}
                       </button>
                       <button
                         onClick={() => handleDelete(user.id)}
                         className={styles.deleteBtn}
                       >
-                        Delete
+                        {t('adminUsers.delete')}
                       </button>
                     </div>
                   </td>
@@ -245,7 +247,7 @@ const AdminUsers = () => {
         <div className={styles.modalOverlay} onClick={handleCloseModal}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>{editingUser ? 'Edit User' : 'Create User'}</h2>
+              <h2>{editingUser ? t('adminUsers.editUser') : t('adminUsers.createUser')}</h2>
               <button onClick={handleCloseModal} className={styles.closeBtn}>×</button>
             </div>
 
@@ -257,7 +259,7 @@ const AdminUsers = () => {
 
             <form onSubmit={handleSubmit} className={styles.form}>
               <FormField
-                label="E-mail"
+                label={t('adminUsers.email')}
                 name="email"
                 type="email"
                 value={formData.email}
@@ -269,7 +271,7 @@ const AdminUsers = () => {
 
               <div className={styles.formRow}>
                 <FormField
-                  label="Name"
+                  label={t('adminUsers.name')}
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
@@ -278,7 +280,7 @@ const AdminUsers = () => {
                   required
                 />
                 <FormField
-                  label="Surname"
+                  label={t('adminUsers.lastName')}
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
@@ -289,19 +291,19 @@ const AdminUsers = () => {
               </div>
 
               <FormField
-                label="Role"
+                label={t('adminUsers.role')}
                 name="role"
                 as="select"
                 value={formData.role}
                 onChange={handleChange}
                 required
               >
-                <option value="TEACHER">Teacher</option>
-                <option value="ADMIN">Administrator</option>
+                <option value="TEACHER">{t('adminUsers.teacher')}</option>
+                <option value="ADMIN">{t('adminUsers.admin')}</option>
               </FormField>
 
               <FormField
-                label={editingUser ? 'Password (leave blank to keep current)' : 'Password'}
+                label={editingUser ? t('adminUsers.passwordKeep') : t('adminUsers.password')}
                 name="password"
                 type="password"
                 value={formData.password}
@@ -314,17 +316,17 @@ const AdminUsers = () => {
               <FormField
                 type="checkbox"
                 name="is_active"
-                label="Active User"
+                label={t('adminUsers.activeUser')}
                 checked={formData.is_active}
                 onChange={handleChange}
               />
 
               <div className={styles.modalActions}>
                 <button type="button" onClick={handleCloseModal} className={styles.cancelBtn}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className={styles.submitBtn}>
-                  {editingUser ? 'Update' : 'Create'}
+                  {editingUser ? t('adminUsers.update') : t('common.create')}
                 </button>
               </div>
             </form>
