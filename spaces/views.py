@@ -1,10 +1,11 @@
 from datetime import timedelta
 
+from django.db.models import ProtectedError
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -73,6 +74,17 @@ class SpaceViewSet(viewsets.ModelViewSet):
         if self.request.method in SAFE_METHODS:
             return [IsAuthenticated()]
         return [IsAuthenticated(), IsAdminRole()]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            self.perform_destroy(instance)
+        except ProtectedError:
+            return Response(
+                {"detail": "No se puede eliminar el espacio porque tiene reservaciones asociadas. Elimine primero las reservaciones."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["get"], url_path="availability")
     def availability(self, request, pk=None):
