@@ -101,7 +101,7 @@ def _parse_datetime(value):
     mine=extend_schema(
         tags=["Reservas (Teacher)"],
         summary="Mis reservas",
-        description="Filtra por rango de fechas y devuelve solo las reservas creadas por el usuario autenticado.",
+        description="Devuelve todas las reservas del usuario autenticado (pasadas, presentes y futuras) incluyendo todos los estados (PENDING, APPROVED, REJECTED, CANCELLED). Opcionalmente filtra por rango de fechas si se proporcionan los parámetros start/end.",
         parameters=DATE_RANGE_PARAMS,
         responses=ReservationAdminSerializer(many=True),
     ),
@@ -188,12 +188,33 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="mine")
     def mine(self, request, *args, **kwargs):
-        start_dt, end_dt = self._get_date_range(request)
+        """
+        Devuelve TODAS las reservas del usuario autenticado.
+        Si se proporcionan parámetros start/end, filtra por ese rango.
+        Sin parámetros, devuelve todas las reservas (pasadas, presentes y futuras).
+        """
         queryset = self.get_queryset().filter(
             created_by_id=getattr(request.user, "id", None),
-            start_at__lt=end_dt,
-            end_at__gt=start_dt,
         )
+
+        # Solo aplicar filtro de fechas si se proporcionan explícitamente
+        start_param = request.query_params.get("start")
+        end_param = request.query_params.get("end")
+
+        if start_param or end_param:
+            now = timezone.now()
+            if start_param:
+                start_dt = _parse_datetime(start_param)
+            else:
+                start_dt = now - timedelta(days=365)  # Un año atrás por defecto
+            if end_param:
+                end_dt = _parse_datetime(end_param)
+            else:
+                end_dt = now + timedelta(days=365)  # Un año adelante por defecto
+            queryset = queryset.filter(start_at__lt=end_dt, end_at__gt=start_dt)
+
+        # Ordenar por fecha de inicio descendente (más recientes primero)
+        queryset = queryset.order_by("-start_at")
         serializer = ReservationAdminSerializer(queryset, many=True)
         return Response(serializer.data)
 
