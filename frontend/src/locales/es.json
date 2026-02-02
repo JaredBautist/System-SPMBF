@@ -245,6 +245,7 @@
     "totalReservations": "Reservas del Mes",
     "pending": "Pendientes",
     "approved": "Aprobadas",
+    "rejected": "Rechazadas",
     "nextReservation": "Proxima Reserva"
   }
 }

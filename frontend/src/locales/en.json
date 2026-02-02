@@ -245,6 +245,7 @@
     "totalReservations": "Monthly Reservations",
     "pending": "Pending",
     "approved": "Approved",
+    "rejected": "Rejected",
     "nextReservation": "Next Reservation"
   }
 }
