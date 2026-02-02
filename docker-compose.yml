@@ -21,7 +21,7 @@ services:
     depends_on:
       - gateway
     ports:
-      - "3001:80"
+      - "3000:80"
     volumes:
       # Permite servir la versión build local sin reconstruir la imagen
       - ./frontend/dist:/usr/share/nginx/html:ro
@@ -69,7 +69,7 @@ services:
       DB_USER: ${ACCOUNTS_DB_USER:-accounts_user}
       DB_PASSWORD: ${ACCOUNTS_DB_PASSWORD:-accounts_pass}
       TIME_ZONE: America/Bogota
-      CORS_ALLOWED_ORIGINS: http://localhost:3001,http://localhost:8080,http://localhost:3001
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8080,http://localhost:3000
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-adminlocal@fesc.edu.co}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-FESC2025}
@@ -123,7 +123,7 @@ services:
       DB_USER: ${SPACES_DB_USER:-spaces_user}
       DB_PASSWORD: ${SPACES_DB_PASSWORD:-spaces_pass}
       TIME_ZONE: America/Bogota
-      CORS_ALLOWED_ORIGINS: http://localhost:3001,http://localhost:8080,http://localhost:3001
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8080,http://localhost:3000
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt}
       RESERVATIONS_BASE_URL: http://reservations:8000/api
     command: >
@@ -172,7 +172,7 @@ services:
       DB_USER: ${RESERVATIONS_DB_USER:-reservations_user}
       DB_PASSWORD: ${RESERVATIONS_DB_PASSWORD:-reservations_pass}
       TIME_ZONE: America/Bogota
-      CORS_ALLOWED_ORIGINS: http://localhost:3001,http://localhost:8080,http://localhost:3001
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8080,http://localhost:3000
       JWT_SECRET: ${JWT_SECRET:-super-secret-jwt}
       RESERVATION_MIN_DURATION_MINUTES: 30
       RESERVATION_MAX_DURATION_HOURS: 4
